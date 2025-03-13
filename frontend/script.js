@@ -23,7 +23,7 @@ async function generatePassword() {
 function savePassword() {
     const password = document.getElementById("password").value;
     if(!password){
-        alert("Gere uma senha antes de salvar!");
+        alert("Generate your password before saving!");
         return;
     }
     const saved = JSON.parse(localStorage.getItem("passwords")) || [];
@@ -63,7 +63,7 @@ async function generatePassword() {
 function savePassword() {
     const password = document.getElementById("password").value;
     if(!password){
-        alert("Gere uma senha antes de salvar!");
+        alert("Generate your password before saving!");
         return;
     }
     const saved = JSON.parse(localStorage.getItem("passwords")) || [];

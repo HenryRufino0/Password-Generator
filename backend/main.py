@@ -1,21 +1,22 @@
-from fastapi import FastAPI, Query
+import fastapi
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import string
 import secrets
 
 app = FastAPI()
 
-# Permitir acesso cross-origin para o frontend (necessário em ambiente local)
+# Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ajuste para segurança em produção
+    allow_origins=["*"],  # Em produção, substitua por domínios específicos
     allow_methods=["GET"],
     allow_headers=["*"],
 )
 
 @app.get("/generate-password")
 def generate_password(
-    length: int = Query(12, ge=4, le=64),  # Tamanho padrão da senha (mín:4, máx:64)
+    length: int = Query(12, ge=4, le=64),
     uppercase: bool = True,
     lowercase: bool = True,
     digits: bool = True,
@@ -23,34 +24,33 @@ def generate_password(
 ):
     """
     Endpoint para gerar senhas seguras.
-
-    Parâmetros:
-    - length (int): Tamanho da senha.
-    - uppercase (bool): Incluir letras maiúsculas.
-    - lowercase (bool): Incluir letras minúsculas.
-    - digits (bool): Incluir números.
-    - special_chars (bool): Incluir caracteres especiais.
-
-    Retorno:
-    - JSON contendo a senha gerada.
     """
 
-    # Montando conjunto de caracteres
-    alphabet = ""
-    if uppercase:
-        alphabet += string.ascii_uppercase
-    if lowercase:
-        alphabet += string.ascii_lowercase
-    if digits:
-        alphabet += string.digits
-    if special_chars:
-        alphabet += string.punctuation
+    # Conjunto de caracteres disponíveis
+    char_sets = {
+        "uppercase": string.ascii_uppercase if uppercase else "",
+        "lowercase": string.ascii_lowercase if lowercase else "",
+        "digits": string.digits if digits else "",
+        "special_chars": string.punctuation if special_chars else ""
+    }
 
-    # Verifica se ao menos uma categoria foi escolhida
-    if not alphabet:
-        return {"error": "Selecione ao menos um tipo de caractere."}
+    # Filtra apenas os conjuntos selecionados
+    selected_char_sets = [chars for chars in char_sets.values() if chars]
 
-    # Gerando senha segura
-    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+    if not selected_char_sets:
+        raise HTTPException(status_code=400, detail="Selecione ao menos um tipo de caractere.")
 
-    return {"password": password}
+    # Garante que pelo menos um caractere de cada tipo escolhido esteja na senha
+    password = [secrets.choice(chars) for chars in selected_char_sets]
+
+    # Preenche o restante da senha aleatoriamente
+    all_chars = "".join(selected_char_sets)
+    password += [secrets.choice(all_chars) for _ in range(length - len(password))]
+
+    # Embaralha a senha para não ficar previsível
+    secrets.SystemRandom().shuffle(password)
+
+    return {"password": "".join(password)}
+
+
+"To activate the server: uvicorn main:app --reload"

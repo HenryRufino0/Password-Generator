@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Senhas Seguras - Matrix Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', sans-serif;
+            color: #0F0;
+            background: url('GIF_HACKER.gif') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+    }
+
+    .glass-card {
+        backdrop-filter: blur(8px);
+        background: rgba(0,0,0,0.75);
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0,255,0,0.5);
+        padding: 30px;
+        width: 400px;
+        text-align: center;
+        color: #00ff66;
+        font-family: 'Orbitron', sans-serif;
+        border: 2px solid #00ff66;
+    }
+
+    input, button {
+        padding: 8px;
+        border-radius: 6px;
+        margin-top: 8px;
+        border: none;
+        width: 100%;
+    }
+
+    input[type=text] {
+        background-color: #000;
+        color: #00ff66;
+        text-align: center;
+        font-family: monospace;
+        border: 1px solid #00ff66;
+    }
+
+    button {
+        background-color: #00ff66;
+        color: #000;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background-color: #00cc52;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+    }
+
+    .checkboxes {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+        margin-top: 10px;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+</style>
+</head>
+<body>
+
+<div class="glass-card">
+    <h2>Gerador de Senhas Seguras</h2>
+
+    <label>Tamanho da senha (4-64):</label>
+    <input type="number" id="length" min="4" max="64" value="12">
+
+    <div class="checkboxes">
+        <label><input type="checkbox" id="uppercase" checked> Maiúsculas</label>
+        <label><input type="checkbox" id="lowercase" checked> Minúsculas</label>
+        <label><input type="checkbox" id="digits" checked> Números</label>
+        <label><input type="checkbox" id="special_chars" checked> Caracteres Especiais</label>
+    </div>
+
+    <button onclick="generatePassword()">Gerar Senha</button>
+    <input type="text" id="password" placeholder="Sua senha segura">
+    <button onclick="savePassword()">Salvar Senha</button>
+</div>
+
+<script>
+async function generatePassword(){
+    const length = document.getElementById("length")?.value || 12;
+    const uppercase = document.getElementById("uppercase").checked;
+    const lowercase = document.getElementById("lowercase").checked;
+    const digits = document.getElementById("digits").checked;
+    const special_chars = document.getElementById("special_chars")?.checked;
+
+    const res = await fetch(`http://localhost:8000/generate-password?length=${length}&uppercase=${uppercase}&lowercase=${lowercase}&digits=${digits}&special_chars=${special_chars}`);
+
+    const data = await res.json();
+
+    document.getElementById("password").value = data.password;
+}
+
+function savePassword(){
+    const password = document.getElementById("password").value;
+    if(password === ""){
+        alert("Primeiro gere uma senha!");
+        return;
+    }
+
+    let passwords = JSON.parse(localStorage.getItem("securePasswords")) || [];
+    passwords.push(password);
+
+    localStorage.setItem("securePasswords", JSON.stringify(passwords));
+
+    alert("Senha salva localmente com sucesso!");
+}
+</script>
+
+</body>
+</html>
